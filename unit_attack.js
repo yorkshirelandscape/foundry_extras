@@ -40,19 +40,6 @@ async function main() {
     let nhCount = nHostiles.length;
     let nthCount = ntHostiles.length;
     
-    let nthDistPairs = nHostiles.map( sourcePoint =>  {
-        return {
-            source: sourcePoint,
-            targets: nHostiles
-        }});
-    
-    let nthDistCheck = [];
-        nthDistPairs.forEach( sourceAndTargets => {
-            sourceAndTargets.targets.forEach( target => {
-                nthDistCheck.push(Math.ceil(canvas.grid.measureDistance(sourceAndTargets.source, target) / 10 ) * 10 );
-            });
-        });
-    
     let allies = canvas.tokens.placeables.filter(t => !t._controlled &&
                         t.data.disposition == selected.data.disposition );
     let eAllies = allies.reduce((acc, t) => {
