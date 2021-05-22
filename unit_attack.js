@@ -2,17 +2,33 @@ main ();
 
 async function main() {
 
-//Is the selected token a military unit? If false, break.
-    if( !_token.name.includes('Infantry') && !_token.name.includes('Cavalry') ) {
-        ui.notifications.error('Select a military unit, not a character.');
-        return;
-    }
-    
 //Is more than one token selected? If true, break.
     if( canvas.tokens.controlled.length == 0 ||  canvas.tokens.controlled.length > 1){
             ui.notifications.error("Please select a single token.");
             return;
         }
+
+    let selected = _token;
+
+//get allied tokens and embedded characters or embedding units (same grid position)
+    let allies = canvas.tokens.placeables.filter(t => !t._controlled &&
+                        t.data.disposition == selected.data.disposition );
+    let eAllies = allies.reduce((acc, t) => {
+        if(canvas.grid.measureDistance(selected, t) < 10 ) {
+            acc.push(t);
+        }
+        return acc;
+    },[]);
+    
+//Is the selected token a military unit? If false, select embedding unit. If unavailable, break.
+    if( !selected.name.includes('Infantry') && !selected.name.includes('Cavalry') ) {
+        if( eAllies.length == 1 ) { 
+                selected = eAllies[0];
+                eAllies = canvas.tokens.placeables.filter(t => t._controlled );
+            } else {
+                ui.notifications.error('Select a military unit, not a character.');
+                return;}
+    }
 
 //get targets
     var target = [];
@@ -20,22 +36,38 @@ async function main() {
         let tActor = i.actor;
         target.push(tActor);
     });
-    
+
 //Is more than one target selected? If true, break.
     if(target.length == 0 || target.length > 1){
             ui.notifications.error("Please select a single target.");
             return;
         }
 
-//assign token variables        
-    let selected = _token;
-    let targeted = Array.from(game.user.targets)[0];
+    let targeted = Array.from(game.user.targets)[0];    
 
-//get hostile tokens, neighboring, non-targeted, and lengths
+//get hostiles and embedded characters or embedding units
     let hostiles = canvas.tokens.placeables.filter(t => !t._controlled &&
                         t.data.disposition == selected.data.disposition * -1 && 
                         ( t.name.includes('Infantry') || t.name.includes('Cavalry') )
                         );
+    
+    let eHostiles = hostiles.reduce((acc, t) => {
+        if(canvas.grid.measureDistance(targeted, t) < 10 ) {
+            acc.push(t);
+        }
+        return acc;
+    },[]);
+    
+//Is the selected target a military unit? If false target embedding unit. If unavailable, break.
+    if( !targeted.name.includes('Infantry') && !targeted.name.includes('Cavalry') ) {
+        if( eHostiles.length == 1 ) { 
+                targeted = eHostiles[0];
+            } else {
+                ui.notifications.error('Target a military unit, not a character.');
+                return;}
+    }
+
+//get neighboring hostiles, non-targeted, and lengths
     let nHostiles = hostiles.reduce((acc, t) => {
         if(canvas.grid.measureDistance(selected, t) < canvas.dimensions.distance ) {
             acc.push(t);
@@ -45,16 +77,6 @@ async function main() {
     let ntHostiles = nHostiles.filter(t => t.id != game.user.targets.ids[0]);
     let nhCount = nHostiles.length;
     let nthCount = ntHostiles.length;
-
-//get allied tokens and embedded (same grid position)
-    let allies = canvas.tokens.placeables.filter(t => !t._controlled &&
-                        t.data.disposition == selected.data.disposition );
-    let eAllies = allies.reduce((acc, t) => {
-        if(canvas.grid.measureDistance(selected, t) < 10 ) {
-            acc.push(t);
-        }
-        return acc;
-    },[]);
 
 //determine appropriate modifiers of embedded characters and their values
     let eType = ''; 
@@ -181,7 +203,7 @@ async function main() {
         cDamage = Math.round( (cBaseRoll + targeted.actor.data.data.abilities.str.mod - selected.actor.data.data.abilities.con.mod + ceDamMod) * 5 * ( targeted.actor.hitPoints.current / selected.actor.hitPoints.current ) )};
 
 //populate content for ChatMessage    
-    var messageContent = 'You rolled <b>' + attack + '</b> ' + ( attack >= targeted.actor.data.data.attributes.ac.value ? 'for <b>' + damage + '</b> damage. <br>' : 'and missed.' ) + '<br>' +
+    var messageContent = '<b>' + selected.name + '</b> rolled <b>' + attack + '</b> ' + ( attack >= targeted.actor.data.data.attributes.ac.value ? 'for <b>' + damage + '</b> damage. <br>' : 'and missed.' ) + '<br>' +
                             '<b>Roll: ' + rollResult + '</b> + <b>5</b> for attacking <br>' +
                                 (flanking ? '&nbsp;&nbsp;&nbsp;+<b>2</b> for flanking <br>' : '' ) +
                                 (entrenched ? '&nbsp;&nbsp;&nbsp;&ndash;<b>2</b> for entrenched target<br>' : '' ) +
