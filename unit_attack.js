@@ -122,7 +122,6 @@ async function main() {
     ceAttMod = ( ceType == 'monster' ? ceAllies[0].actor.data.data.abilities.dex.mod : ( ceAllies[0].actor.data.data.abilities.int.mod > ceAllies[0].actor.data.data.abilities.wis.mod ? ceAllies[0].actor.data.data.abilities.int.mod : ceAllies[0].actor.data.data.abilities.wis.mod ) );
     ceDamMod = ( ceType == 'monster' ? ceAllies[0].actor.data.data.abilities.str.mod : ceAllies[0].actor.data.data.abilities.cha.mod ); } 
     
-    console.log(ceType);
 
 //determine whether attack leaves or enters difficult terrain    
     let yLoc = canvas.grid.grid.getGridPositionFromPixels( _token.x, _token.y);
@@ -155,22 +154,21 @@ async function main() {
                     default : dir.y = 0 ;
     }
     
-    let allWalls = [];
-    canvas.walls.quadtree.objects.forEach( w => {
-            allWalls.push( {x1: w.t.data.c[0], y1: w.t.data.c[1], x2: w.t.data.c[2], y2: w.t.data.c[3], dir: w.t.data.dir, h: w.t.data.flags.wallHeight.wallHeightTop} );
+    let testRay = new Ray({x: selected.center.x, y: selected.center.y}, {x: targeted.center.x, y: targeted.center.y});
+    
+    let crossWalls = [];
+    canvas.walls.placeables.forEach( w => { 
+            if( WallsLayer.testWall(testRay, w) ) {
+                    crossWalls.push( w );
+                }
+            });
+    
+    let cWalls = [];
+    crossWalls.forEach( w => {
+            cWalls.push( {x1: w.coords[0], y1: w.coords[1], x2: w.coords[2], y2: w.coords[3], dir: w.data.dir, h: w.data.flags.wallHeight.wallHeightTop} );
     });
     
-    let crossWalls = allWalls.reduce( (acc, w ) => {
-        if ( midPoint.x >= Math.min(w.x1, w.x2) && midPoint.x <= Math.max(w.x1, w.x2) &&
-                midPoint.y >= Math.min(w.y1, w.y2) && midPoint.y <= Math.max(w.y1, w.y2)    
-            ){
-            acc.push(w);
-        }
-        return acc;
-    },[]);
-    
-    
-    let cWall = Array.from(crossWalls)[0];
+    let cWall = Array.from(cWalls)[0];
     
     let dirZ = '';
     if( typeof cWall != 'undefined' && cWall.h != 0 ) {
