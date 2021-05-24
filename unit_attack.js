@@ -74,7 +74,7 @@ async function main() {
         }
         return acc;
     },[]);
-    let ntHostiles = nHostiles.filter(t => t.id != game.user.targets.ids[0]);
+    let ntHostiles = nHostiles.filter(t => t.id != targeted.id);
     let nhCount = nHostiles.length;
     let nthCount = ntHostiles.length;
 
@@ -107,7 +107,7 @@ async function main() {
 //get allies and embedded mods and values for target's counterattack
     let cAllies = canvas.tokens.placeables.filter(t => t.data.disposition == targeted.data.disposition );
     let ceAllies = cAllies.reduce((acc, t) => {
-        if(canvas.grid.measureDistance(selected, t) < 10 ) {
+        if(canvas.grid.measureDistance(targeted, t) < 10 && !t.name.includes('Infantry') && !t.name.includes('Cavalry')) {
             acc.push(t);
         }
         return acc;
@@ -121,6 +121,8 @@ async function main() {
     ceType = ( ceAllies[0].actor.data.data.abilities.int.mod < 0 ? 'monster' : 'npc' );
     ceAttMod = ( ceType == 'monster' ? ceAllies[0].actor.data.data.abilities.dex.mod : ( ceAllies[0].actor.data.data.abilities.int.mod > ceAllies[0].actor.data.data.abilities.wis.mod ? ceAllies[0].actor.data.data.abilities.int.mod : ceAllies[0].actor.data.data.abilities.wis.mod ) );
     ceDamMod = ( ceType == 'monster' ? ceAllies[0].actor.data.data.abilities.str.mod : ceAllies[0].actor.data.data.abilities.cha.mod ); } 
+    
+    console.log(ceType);
 
 //determine whether attack leaves or enters difficult terrain    
     let yLoc = canvas.grid.grid.getGridPositionFromPixels( _token.x, _token.y);
@@ -204,35 +206,36 @@ async function main() {
 
 //populate content for ChatMessage    
     var messageContent = '<b>' + selected.name + '</b> rolled <b>' + attack + '</b> ' + ( attack >= targeted.actor.data.data.attributes.ac.value ? 'for <b>' + damage + '</b> damage. <br>' : 'and missed.' ) + '<br>' +
-                            '<b>Roll: ' + rollResult + '</b> + <b>5</b> for attacking <br>' +
+                            '<b>Roll (' + rollResult + '): </b> + <b>5</b> for attacking <br>' +
                                 (flanking ? '&nbsp;&nbsp;&nbsp;+<b>2</b> for flanking <br>' : '' ) +
                                 (entrenched ? '&nbsp;&nbsp;&nbsp;&ndash;<b>2</b> for entrenched target<br>' : '' ) +
                                 ( nthCount > 0 ? '&nbsp;&nbsp;&nbsp;&ndash;<b>' + nthCount + '</b> for adjacent enemy units not targeted <br>' : '' ) +
                                 ( dirZ != 0 ? '&nbsp;&nbsp;&nbsp;<b>' + ( dirZ == 1 ? '&ndash;1' : '+1' ) + '</b> for attacking ' + ( dirZ == 1 ? 'uphill' : 'downhill' ) + '<br>' : '' ) +
                                 ( dt ? '&nbsp;&nbsp;&nbsp;&ndash;<b>1</b> for ' + ( leavingDifficult ? 'leaving' : 'entering' ) + ' difficult terrain <br>' : '' ) +
-                            '<b>Attack: ' + baseRoll + '</b> + yDEX: <b>' + selected.actor.data.data.abilities.dex.mod +
+                            '<b>Attack (' + attack + '): ' + baseRoll + '</b> + yDEX: <b>' + selected.actor.data.data.abilities.dex.mod +
                                 '</b> &ndash; tDEX: <b>' + targeted.actor.data.data.abilities.dex.mod + '</b><br>' + 
                                 ( eAllies.length > 0 ? '&nbsp;&nbsp;&nbsp;+ ' + ( eType == 'npc' ? ( eAllies[0].actor.data.data.abilities.int.mod > eAllies[0].actor.data.data.abilities.wis.mod ? 'eINT' : 'eWIS' ) : 'mDEX' ) + ': <b>' + eAttMod + '</b><br>' : '' ) +
-                            ( attack >= targeted.actor.data.data.attributes.ac.value ? '<b>Damage: ' + baseRoll + '</b> + ySTR: <b>' + selected.actor.data.data.abilities.str.mod +
+                            ( attack >= targeted.actor.data.data.attributes.ac.value ? '<b>Damage ('+ damage +'): ' + baseRoll + '</b> + ySTR: <b>' + selected.actor.data.data.abilities.str.mod +
                                 '</b> &ndash; tCON: <b>' + targeted.actor.data.data.abilities.con.mod + '</b><br>' + 
                                 ( eAllies.length > 0 ? '&nbsp;&nbsp;&nbsp;+ ' + ( eType == 'npc' ? 'eCHA' : 'mSTR' ) + ': <b>' + eDamMod + '</b><br>' : '' ) +
                             '&nbsp;&nbsp;&nbsp;* <b>5</b> * yHP/tHP (<b>' + selected.actor.hitPoints.current + '</b> / <b>' + targeted.actor.hitPoints.current + '</b>)' : '') + 
                             '<br><br>' +
                             '<b>' + targeted.name + '</b> counterattacked, rolling ' + cAttack + '</b> ' + ( cAttack >= selected.actor.data.data.attributes.ac.value ? 'for <b>' + cDamage + '</b> damage. <br>' : 'and missed.' ) + '<br>' +
-                            '<b>Roll: ' + cRollResult + '</b><br>' +
-                            '<b>Attack: ' + cBaseRoll + '</b> + yDEX: <b>' + targeted.actor.data.data.abilities.dex.mod +
+                            '<b>Roll (' + cRollResult + ') </b><br>' +
+                            '<b>Attack ('+ cAttack +'): ' + cBaseRoll + '</b> + yDEX: <b>' + targeted.actor.data.data.abilities.dex.mod +
                                 '</b> &ndash; tDEX: <b>' + selected.actor.data.data.abilities.dex.mod + '</b><br>' + 
                                 ( ceAllies.length > 0 ? '&nbsp;&nbsp;&nbsp;+ ' + ( ceType == 'npc' ? ( ceAllies[0].actor.data.data.abilities.int.mod > ceAllies[0].actor.data.data.abilities.wis.mod ? 'eINT' : 'eWIS' ) : 'mDEX' ) + ': <b>' + ceAttMod + '</b><br>' : '' ) +
-                            ( cAttack >= selected.actor.data.data.attributes.ac.value ? '<b>Damage: ' + cBaseRoll + '</b> + ySTR: <b>' + targeted.actor.data.data.abilities.str.mod +
+                            ( cAttack >= selected.actor.data.data.attributes.ac.value ? '<b>Damage ('+ cDamage +'): ' + cBaseRoll + '</b> + ySTR: <b>' + targeted.actor.data.data.abilities.str.mod +
                                 '</b> &ndash; tCON: <b>' + selected.actor.data.data.abilities.con.mod + '</b><br>' + 
                                 ( ceAllies.length > 0 ? '&nbsp;&nbsp;&nbsp;+ ' + ( ceType == 'npc' ? 'eCHA' : 'mSTR' ) + ': <b>' + ceDamMod + '</b><br>' : '' ) +
                             '&nbsp;&nbsp;&nbsp;* <b>5</b> * yHP/tHP (<b>' + targeted.actor.hitPoints.current + '</b> / <b>' + selected.actor.hitPoints.current + '</b>)' : '');
-//get current HPs and apply damage to both    
-    let yHP = selected.actor.hitPoints.current
-    let tHP = targeted.actor.hitPoints.current
-    
-    selected.actor.data.data.attributes.hp.value = yHP - cDamage
-    targeted.actor.data.data.attributes.hp.value = tHP - damage
+
+//get current HPs and apply damage to both
+    let tHP = targeted.actor.hitPoints.current;
+    let yHP = selected.actor.hitPoints.current;
+
+    targeted.actor.update({"data.attributes.hp.value" : tHP - damage});
+    selected.actor.update({"data.attributes.hp.value" : yHP - cDamage});
 
 //send ChatMessage        
     var chatData = {
