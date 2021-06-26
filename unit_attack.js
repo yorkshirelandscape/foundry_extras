@@ -124,15 +124,16 @@ async function main() {
     
 
 //determine whether attack leaves or enters difficult terrain    
-    let yLoc = canvas.grid.grid.getGridPositionFromPixels( _token.x, _token.y);
+    let yLoc = {x: _token.center.x, y: _token.center.y};
 
-    let leavingDifficult = typeof canvas.terrain.costGrid[yLoc[0]][yLoc[1]] != 'undefined';
+    let leavingDifficult = canvas.terrain.cost(yLoc, {ignoreGrid: true}) > 1;
     
-    let tLoc = canvas.grid.grid.getGridPositionFromPixels( targeted.x, targeted.y);
+    let tLoc = {x: targeted.center.x, y: targeted.center.y};
 
-    let enteringDifficult = typeof canvas.terrain.costGrid[tLoc[0]][tLoc[1]] != 'undefined';
+    let enteringDifficult = canvas.terrain.cost(tLoc, {ignoreGrid: true}) > 1;
     
     let dt = leavingDifficult != enteringDifficult;
+    
 
 //figure out whether attack crosses a terrain wall. Walls must be unidirectional, pointing uphill, and have a height using Wall Height module. 
     let dir = {x: '', y: ''};
@@ -192,7 +193,7 @@ async function main() {
     var attack = baseRoll + selected.actor.data.data.abilities.dex.mod - targeted.actor.data.data.abilities.dex.mod + eAttMod;
     var damage = 0;
     if( attack >= targeted.actor.attributes.ac.value ) {
-        damage = Math.round( (baseRoll + selected.actor.data.data.abilities.str.mod - targeted.actor.data.data.abilities.con.mod + eDamMod) * 5 * ( selected.actor.hitPoints.current / targeted.actor.hitPoints.current ) )};
+        damage = Math.round( (baseRoll + selected.actor.data.data.abilities.str.mod - targeted.actor.data.data.abilities.con.mod + eDamMod) * 5 * ( selected.actor.hitPoints.current * ( selected.name.includes('Cavalry') ? 2 : 1 ) / targeted.actor.hitPoints.current ) )};
     
     var cDiceroll = new Roll('1d20').roll();
     var cRollResult = cDiceroll.total;
@@ -200,7 +201,7 @@ async function main() {
     var cAttack = cBaseRoll + targeted.actor.data.data.abilities.dex.mod - selected.actor.data.data.abilities.dex.mod + ceAttMod;
     var cDamage = 0;
     if( cAttack >= selected.actor.attributes.ac.value ) {
-        cDamage = Math.round( (cBaseRoll + targeted.actor.data.data.abilities.str.mod - selected.actor.data.data.abilities.con.mod + ceDamMod) * 5 * ( targeted.actor.hitPoints.current / selected.actor.hitPoints.current ) )};
+        cDamage = Math.round( (cBaseRoll + targeted.actor.data.data.abilities.str.mod - selected.actor.data.data.abilities.con.mod + ceDamMod) * 5 * ( targeted.actor.hitPoints.current / selected.actor.hitPoints.current * ( selected.name.includes('Cavalry') ? 2 : 1 ) ) )};
 
 //populate content for ChatMessage    
     var messageContent = '<b>' + selected.name + '</b> rolled <b>' + attack + '</b> ' + ( attack >= targeted.actor.data.data.attributes.ac.value ? 'for <b>' + damage + '</b> damage. <br>' : 'and missed.' ) + '<br>' +
@@ -208,7 +209,7 @@ async function main() {
                                 (flanking ? '&nbsp;&nbsp;&nbsp;+<b>2</b> for flanking <br>' : '' ) +
                                 (entrenched ? '&nbsp;&nbsp;&nbsp;&ndash;<b>2</b> for entrenched target<br>' : '' ) +
                                 ( nthCount > 0 ? '&nbsp;&nbsp;&nbsp;&ndash;<b>' + nthCount + '</b> for adjacent enemy units not targeted <br>' : '' ) +
-                                ( dirZ != 0 ? '&nbsp;&nbsp;&nbsp;<b>' + ( dirZ == 1 ? '&ndash;1' : '+1' ) + '</b> for attacking ' + ( dirZ == 1 ? 'uphill' : 'downhill' ) + '<br>' : '' ) +
+                                ( dirZ != 0 ? '&nbsp;&nbsp;&nbsp;<b>' + ( dirZ == 1 ? '&ndash; 1' : '+ 1' ) + '</b> for attacking ' + ( dirZ == 1 ? 'uphill' : 'downhill' ) + '<br>' : '' ) +
                                 ( dt ? '&nbsp;&nbsp;&nbsp;&ndash;<b>1</b> for ' + ( leavingDifficult ? 'leaving' : 'entering' ) + ' difficult terrain <br>' : '' ) +
                             '<b>Attack (' + attack + '): ' + baseRoll + '</b> + yDEX: <b>' + selected.actor.data.data.abilities.dex.mod +
                                 '</b> &ndash; tDEX: <b>' + targeted.actor.data.data.abilities.dex.mod + '</b><br>' + 
@@ -216,7 +217,7 @@ async function main() {
                             ( attack >= targeted.actor.data.data.attributes.ac.value ? '<b>Damage ('+ damage +'): ' + baseRoll + '</b> + ySTR: <b>' + selected.actor.data.data.abilities.str.mod +
                                 '</b> &ndash; tCON: <b>' + targeted.actor.data.data.abilities.con.mod + '</b><br>' + 
                                 ( eAllies.length > 0 ? '&nbsp;&nbsp;&nbsp;+ ' + ( eType == 'npc' ? 'eCHA' : 'mSTR' ) + ': <b>' + eDamMod + '</b><br>' : '' ) +
-                            '&nbsp;&nbsp;&nbsp;* <b>5</b> * yHP/tHP (<b>' + selected.actor.hitPoints.current + '</b> / <b>' + targeted.actor.hitPoints.current + '</b>)' : '') + 
+                            '&nbsp;&nbsp;&nbsp;* <b>5</b> * yHP/tHP (<b>' + selected.actor.hitPoints.current + '</b>' + ( selected.name.includes('Cavalry') ? ' * <b>2</b> (CavAtk) ' : '' ) + ' / <b>' + targeted.actor.hitPoints.current + '</b>)' : '') + 
                             '<br><br>' +
                             '<b>' + targeted.name + '</b> counterattacked, rolling ' + cAttack + '</b> ' + ( cAttack >= selected.actor.data.data.attributes.ac.value ? 'for <b>' + cDamage + '</b> damage. <br>' : 'and missed.' ) + '<br>' +
                             '<b>Roll (' + cRollResult + ') </b><br>' +
@@ -226,14 +227,21 @@ async function main() {
                             ( cAttack >= selected.actor.data.data.attributes.ac.value ? '<b>Damage ('+ cDamage +'): ' + cBaseRoll + '</b> + ySTR: <b>' + targeted.actor.data.data.abilities.str.mod +
                                 '</b> &ndash; tCON: <b>' + selected.actor.data.data.abilities.con.mod + '</b><br>' + 
                                 ( ceAllies.length > 0 ? '&nbsp;&nbsp;&nbsp;+ ' + ( ceType == 'npc' ? 'eCHA' : 'mSTR' ) + ': <b>' + ceDamMod + '</b><br>' : '' ) +
-                            '&nbsp;&nbsp;&nbsp;* <b>5</b> * yHP/tHP (<b>' + targeted.actor.hitPoints.current + '</b> / <b>' + selected.actor.hitPoints.current + '</b>)' : '');
+                            '&nbsp;&nbsp;&nbsp;* <b>5</b> * yHP/tHP (<b>' + targeted.actor.hitPoints.current + '</b> / <b>' + selected.actor.hitPoints.current + '</b>' + ( selected.name.includes('Cavalry') ? ' * <b>2</b> (CavAtk) ' : '' ) + ')' : '');
 
 //get current HPs and apply damage to both
     let tHP = targeted.actor.hitPoints.current;
     let yHP = selected.actor.hitPoints.current;
 
-    targeted.actor.update({"data.attributes.hp.value" : tHP - damage});
-    selected.actor.update({"data.attributes.hp.value" : yHP - cDamage});
+    targeted.actor.update({"data.attributes.hp.value" : Math.max(tHP - damage,0)});
+    selected.actor.update({"data.attributes.hp.value" : Math.max(yHP - cDamage,0)});
+    
+    if ( selected.actor.hitPoints.current <= 0 && !selected.data.effects.includes('icons/svg/skull.svg') ) { 
+            selected.toggleEffect('icons/svg/skull.svg', {overlay: true});
+        };
+    if ( targeted.actor.hitPoints.current <= 0 && !targeted.data.effects.includes('icons/svg/skull.svg') ) { 
+            targeted.toggleEffect('icons/svg/skull.svg', {overlay: true});
+        };
 
 //send ChatMessage        
     var chatData = {
