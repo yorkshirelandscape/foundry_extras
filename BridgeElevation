@@ -1,0 +1,75 @@
+/*
+Requires Multilevel Tokens and Levels plugins and a very particular setup, but could be useful to someone.
+The original design was for a bridge scenario, where you might want to be over or under the bridge.
+Create a map. Place a bridge tile. Set its Levels values to 0 and Infinity. Add an MLT region that covers the bridge tile. Set the argument to 0,
+the Macro to ElevationChange, and enable all three triggers. Create another region with the same values
+that represents the space below the level of the bridge, but set its argument to -10, or whatever lower elevation 
+you choose. Optionally, create walls below the level of the bridge (with Levels values of -Infinity to -1) to 
+represent the bridge supports and where the bridge meets the land.
+
+The macro will run automatically whenever a token enters, leaves, or moves within one of these regions and
+automatically adjust token elevation. The sole exception to this is if the token moves from a space occupied by 
+no MLT regions into a space occupied by two of them. In this scenario, a dialog will appear asking whether to
+place the token above or below the bridge tile. The response will dictate the token elevation.
+*/
+
+let m = game.macros.getName('ElevationChange');
+
+if ( typeof m.data.flags.elevationChange.eveType == 'undefined' ) {
+    m.data.flags.elevationChange.eveType = 0;
+}
+if ( typeof m.data.flags.elevationChange.time == 'undefined' ) {
+    m.data.flags.elevationChange.time = 0;
+}
+if ( typeof m.data.flags.elevationChange.argPass == 'undefined' ) {
+    m.data.flags.elevationChange.argPass = null;
+}
+
+console.log(Date.now() - m.data.flags.elevationChange.time);
+
+let eType = ( Date.now() - m.data.flags.elevationChange.time <= 100 ? m.data.flags.elevationChange.eveType : 0 );
+
+let eveCount = ( Date.now() - m.data.flags.elevationChange.time <= 100 ? 1 : 0 );
+
+let zMax = Math.max(args[0], m.data.flags.elevationChange.argPass);
+let zMin = Math.min(args[0], m.data.flags.elevationChange.argPass);
+
+
+if (event === MLT.ENTER) {
+    console.log(eveCount + '-enter-' + args[0] );
+    if ( eveCount == 1 && eType == 'ENTER') {
+        let d = new Dialog({
+         title: "Up or Down?",
+         buttons: {
+          one: {
+           icon: '<i class="fas fa-arrow-circle-up"></i>',
+           callback: () => token.update({"elevation": zMax})
+          },
+          two: {
+           icon: '<i class="fas fa-arrow-circle-down"></i>',
+           callback: () => token.update({"elevation": zMin})
+          }
+         },
+         default: "one",
+        });
+        d.render(true);
+    } else if ( eType != 'MOVE' ) {
+        token.update({"elevation": token.data.elevation + args[0]});
+    }
+    m.data.flags.elevationChange.eveType = 'ENTER';
+    m.data.flags.elevationChange.argPass = args[0];
+} else if (event === MLT.LEAVE) {
+    console.log(eveCount + '-leave-' + args[0] + eType);
+    if ( eveCount == 1 && eType == 'LEAVE' ) {
+        token.update({"elevation": '0' });
+    } else {
+        token.update({"elevation": token.data.elevation - args[0] });
+    }
+    m.data.flags.elevationChange.eveType = 'LEAVE';
+} else if (event === MLT.MOVE) {
+    console.log(eveCount + '-move-' + args[0] );
+    token.update({"elevation": args[0]});
+    m.data.flags.elevationChange.eveType = 'MOVE';
+}
+
+m.data.flags.elevationChange.time = Date.now();
