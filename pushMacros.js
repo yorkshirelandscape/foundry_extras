@@ -3,15 +3,19 @@ const gmMacros = gm.getHotbarMacros(5);
 
 for (const macroDoc of gmMacros) {
   if (macroDoc.macro !== null) {
-    macroDoc.macro.ownership.default = 1;
+    macroDoc.macro.ownership.default = 2;
   }
 }
 
 for (const user of game.users) {
   if (user !== gm) {
+    let userMacros = user.getHotbarMacros(1);
     for (let i = 0; i < 10; i++) {
       let macroDoc = gmMacros[i].macro;
-      await user.assignHotbarMacro(macroDoc, i + 1);
+      let slot = userMacros.find((s) => s.macro == null );
+      if (slot) {
+          await user.assignHotbarMacro( macroDoc, slot );
+      }
     }
   }    
 } 
