@@ -42,11 +42,17 @@
 *:is(.journal-entry-content, .editor-content) .img-grid {
 	display: grid;
 	grid-template-columns: auto repeat(3, max-content); 
+	vertical-align: middle;
 }
 
 *:is(.journal-entry-content, .editor-content) .img-grid img {
 	border: 0;
 	height: 200px;
+	margin: 0;
+	position: relative;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 }
 
 *:is(.journal-entry-content, .editor-content) .img-grid .img-slice {
@@ -95,6 +101,7 @@
 *:is(.journal-entry-content, .editor-content) .check-grid {
 	display: grid;
 	grid-template-columns: repeat(3, max-content);
+	grid-auto-columns: max-content;
 	grid-template-rows: auto
 	grid-template-areas:
 		". header header"
@@ -127,5 +134,4 @@
 	margin: auto;
 	overflow: clip;
 	width: 100px;
-	
 }
