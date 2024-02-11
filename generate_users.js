@@ -122,7 +122,7 @@ async function createUser(username) {
         actor.update({
             permission: permissions
         })
-        return user;
+        return [user, pw];
 }
 
 async function generatePassword( username ) {
@@ -152,22 +152,50 @@ async function pushMacros( user, gmMacros ) {
     }
 }
 
-if ( pm ) {    
-  const gm = game.user;
-  var gmMacros = gm.getHotbarMacros(5);
-  
-  for (const macroDoc of gmMacros) {
-      if (macroDoc.macro !== null) {
-          macroDoc.macro.ownership.default = 2;
-      }
-  }
+if (pm) {
+    const gm = game.user;
+    const gmMacros = gm.getHotbarMacros(5);
+
+    for (const macroDoc of gmMacros) {
+        if (macroDoc.macro !== null) {
+            macroDoc.macro.ownership.default = 2;
+        }
+    }
 }
 
+let record = '';
+
 for (const userName of userNames) {
-    let newUser = await createUser(userName);
+    let [newUser, pw] = await createUser(userName);
     if (pm) await pushMacros( newUser, gmMacros );
+    record += `<tr><td style="user-select:text">${userName}</td><td style="user-select:text">${pw}</td></tr>`;
 }
 
 const uNum = userNames.length;
 
-ui.notifications.info(`Created ${uNum} user${uNum > 1 ? 's' : ''}.`)
+const template = `
+    <div>
+    <p>Created ${uNum} user${uNum > 1 ? 's' : ''}.</p>
+    <table>
+    <thead>
+    <tr><th>User</th><th>Password</th></tr>
+    </thead>
+    <tbody>
+    ${record}
+    </tbody>
+    </table>
+    </div>
+`
+
+new Dialog(
+    {
+      title: "User Generator",
+      content: template,
+      buttons: {
+        close: {
+          label: "Close",
+        },
+      },
+    }, 
+    { width: 400 } 
+).render(true);
