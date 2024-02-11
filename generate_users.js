@@ -1,4 +1,3 @@
-
 /*
 Setup Instructions:
   - In the characters object below, replace every instance of WORD with
@@ -12,9 +11,15 @@ Setup Instructions:
     i.e., 'Earn' for 8, 'Tarp' for 2, etc.
   - If you'd like, you can customize the numbers object as well, but 
     there's probably no good reason to.
+  - Optionally, you can set the value of pm below to true and the macro
+    will take the contents of your macro bar 5 and push it to every player's
+    macro bar 1. This way your new users have a standard set of macros.
 
 That should be it. Drop me a line if it gives you any trouble.
 */
+
+const pm = false; // push macros to new users?
+
 let session = prompt('Name of actor folder (new or existing):', 'PCs' );
 
 if ( session === '' ) {
@@ -147,18 +152,20 @@ async function pushMacros( user, gmMacros ) {
     }
 }
 
-const gm = game.user;
-const gmMacros = gm.getHotbarMacros(5);
-
-for (const macroDoc of gmMacros) {
-    if (macroDoc.macro !== null) {
-        macroDoc.macro.ownership.default = 2;
-    }
+if ( pm ) {    
+  const gm = game.user;
+  var gmMacros = gm.getHotbarMacros(5);
+  
+  for (const macroDoc of gmMacros) {
+      if (macroDoc.macro !== null) {
+          macroDoc.macro.ownership.default = 2;
+      }
+  }
 }
 
 for (const userName of userNames) {
     let newUser = await createUser(userName);
-    await pushMacros( newUser, gmMacros );
+    if (pm) await pushMacros( newUser, gmMacros );
 }
 
 const uNum = userNames.length;
