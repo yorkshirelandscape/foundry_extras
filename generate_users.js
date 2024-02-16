@@ -117,10 +117,10 @@ async function createUser(username) {
         let pw = await generatePassword( username );
         let user = await User.create({name: username, role: 1, password: pw, character: actor, color: getRandomColor( 0.7, 0.99 )})
         let id = user.id
-        let permissions = actor.permission
-        permissions[id] = 3
+        let owner_obj = actor.ownership
+        ownership[id] = 3
         actor.update({
-            permission: permissions
+            ownership: owner_obj
         })
         return [user, pw];
 }
