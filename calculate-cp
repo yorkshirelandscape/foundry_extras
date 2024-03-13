@@ -14,4 +14,18 @@ const points = levels.map((l) => {
 
 const cp = points.reduce((acc, p) => acc + p, 0 );
 
-ui.notifications.info(`CP: ${cp}`);
+const size = party.length;
+
+let tier = '';
+if ( cp >= 19 ) {
+    tier = 'HT';
+} else if ( cp <= 15 ) {
+    tier = 'LT';
+} else if ( size <= 4 ){
+    tier = 'HT'
+} else {
+    tier = 'LT';
+}
+
+
+ui.notifications.info(`CP: ${cp} ${tier}`);
