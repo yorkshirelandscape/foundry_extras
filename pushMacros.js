@@ -3,7 +3,7 @@ const gmMacros = gm.getHotbarMacros(5);
 
 for (const macroDoc of gmMacros) {
   if (macroDoc.macro !== null) {
-    macroDoc.macro.ownership.default = 2;
+    await macroDoc.macro.update( { 'ownership.default': 2 } );
   }
 }
 
