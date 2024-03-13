@@ -158,7 +158,7 @@ if (pm) {
 
     for (const macroDoc of gmMacros) {
         if (macroDoc.macro !== null) {
-            macroDoc.macro.ownership.default = 2;
+            macroDoc.macro.update( { 'ownership.default': 2 } );
         }
     }
 }
