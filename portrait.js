@@ -50,12 +50,12 @@ Hooks.on('canvasReady', async (canvas) => {
   });
 
   const playerLabels = game.canvas.drawings.objects.children
-    .filter((d) => d.text?._text.substring(0, 6).toLowerCase() === 'player')
-    .sort((a, b) => a.text._text.match(/[0-9]+$/)[0] - b.text._text.match(/[0-9]+$/)[0]);
+    .filter((d) => d.text?.text.substring(0, 6).toLowerCase() === 'player')
+    .sort((a, b) => a.text.text.match(/[0-9]+$/)[0] - b.text.text.match(/[0-9]+$/)[0]);
 
   playerLabels.forEach((d) => {
     const drawing = d;
-    const playerNo = drawing.text._text.match(/[0-9]+$/)[0];
+    const playerNo = drawing.text.text.match(/[0-9]+$/)[0];
     drawing.id2 = `player-label${playerNo}`;
   });
 
@@ -73,7 +73,7 @@ Hooks.on('canvasReady', async (canvas) => {
 
   characters.forEach(async (c, i) => {
     const playerLabel = playerLabels.find((l) => l.id2 === `player-label${i + 1}`);
-    [playerLabel.text._text] = c.prototypeToken.name.match(/[^\s]+/);
+    [playerLabel.text.text] = c.prototypeToken.name.match(/[^\s]+/);
     const portraitToken = portraitTokens.find((t) => t.id2 === `token${i + 1}`);
     let markerTexture;
     if (c.img === 'systems/pf2e/icons/default-icons/character.svg') {
@@ -124,7 +124,7 @@ Hooks.on('canvasReady', async (canvas) => {
   users.forEach((u) => {
     const chars = game.actors.filter((a) => a.getUserLevel(u) === 3 && a.name !== 'Party Loot');
     chars.forEach((ch) => {
-      const label = game.canvas.drawings.objects.children.find((d) => d.text?._text === ch.prototypeToken.name.match(/[^\s]+/)[0]);
+      const label = game.canvas.drawings.objects.children.find((d) => d.text?.text === ch.prototypeToken.name.match(/[^\s]+/)[0]);
       if (label) { label.refresh(); }
     });
   });
