@@ -1,5 +1,8 @@
 /*
+Derived from code by meneltamar and Martin Leitner-Ankerl (https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/).
+
 Setup Instructions:
+  - If you wish to use the password generator, set use_pw to true.
   - In the characters object below, replace every instance of WORD with
     a four-letter word beginning with the corresponding letter. 
   - Capitalize them however you want, but I'd recommend something consistent.
@@ -18,7 +21,8 @@ Setup Instructions:
 That should be it. Drop me a line if it gives you any trouble.
 */
 
-const pm = false; // push macros to new users?
+const use_pw = false; // use password generator?
+const use_pm = false; // push macros to new users?
 
 let session = prompt('Name of actor folder (new or existing):', 'PCs' );
 
@@ -113,8 +117,11 @@ async function createUser(username) {
         name: username,
         type: "character",
         folder: folder.id
-        })
-        let pw = await generatePassword( username );
+        });
+        let pw = '';
+        if (use_pw) {
+            pw = await generatePassword( username );
+        };
         let user = await User.create({name: username, role: 1, password: pw, character: actor, color: getRandomColor( 0.7, 0.99 )})
         let id = user.id
         let owner_obj = actor.ownership
@@ -152,7 +159,7 @@ async function pushMacros( user, gmMacros ) {
     }
 }
 
-if (pm) {
+if (use_pm) {
     const gm = game.user;
     const gmMacros = gm.getHotbarMacros(5);
 
@@ -167,7 +174,7 @@ let record = '';
 
 for (const userName of userNames) {
     let [newUser, pw] = await createUser(userName);
-    if (pm) await pushMacros( newUser, gmMacros );
+    if (use_pm) await pushMacros( newUser, gmMacros );
     record += `<tr><td style="user-select:text">${userName}</td><td style="user-select:text">${pw}</td></tr>`;
 }
 
