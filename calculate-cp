@@ -1,0 +1,17 @@
+const base = prompt('Enter the base level of the scenario:', 1 );
+
+const party = game.actors.party.members.filter((c) => c.type === 'character' && !['Animal Companion','Eidolon','Construct Companion'].includes(c.class?.name));
+
+const levels = party.map((c) => c.system.details.level.value - base );
+
+const points = levels.map((l) => { 
+    if (l === 3) {
+        return 6
+    } else { 
+        return l + 2 
+    }
+});
+
+const cp = points.reduce((acc, p) => acc + p, 0 );
+
+ui.notifications.info(`CP: ${cp}`);
