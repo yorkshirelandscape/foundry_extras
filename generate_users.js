@@ -125,7 +125,7 @@ async function createUser(username) {
         let user = await User.create({name: username, role: 1, password: pw, character: actor, color: getRandomColor( 0.7, 0.99 )})
         let id = user.id
         let owner_obj = actor.ownership
-        ownership[id] = 3
+        owner_obj[id] = 3
         actor.update({
             ownership: owner_obj
         })
