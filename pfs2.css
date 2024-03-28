@@ -1,16 +1,337 @@
-*:is(.journal-entry-content, .editor-content) img.v-img {
+*:is( .journal-entry-content, .editor-content ):has(.v-journal) {
+	font-family: Lato, Signika, sans-serif;
+}
+
+.v-journal {
+
+	h1, h2, h3, h4 {
+		font-variant: small-caps;	
+	}	
+
+	p:has(strong:only-of-type) {
+		padding-left: 2em;
+		text-indent: -2em;	
+		
+		a:is(.inline-check, .content-link) {
+			padding-left: 1;
+			text-indent: 0;
+		}
+		
+		+ p:not(:has(strong:only-of-type)) {
+			padding-left: 2em;
+			
+			&:has(em:only-of-type) {
+				padding-left: 0;
+			}
+		}
+		
+	}
+	
+
+	blockquote {
+		background: rgb(178,170,149,0.2); /* #e9e9e9; */
+		border-left: 10px solid var(--alt);
+		margin: 0.2em 0 0.5em 0;
+		padding: 0.2em 10px 0.5em 10px;
+	}
+	
+	.section {
+		font-style: normal;
+		margin: 0.2em 0 0.5em 0;
+		padding: 0.2em 10px 0.5em 10px;
+		
+		> p {
+			
+			&:nth-child(-n+2):not(:empty) {
+				font-size: 1.25rem;
+				font-variant: all-small-caps;
+				font-weight: bold;
+				margin-top: -0.2rem;
+				margin-bottom: 0.2rem;
+				
+				&:empty:has( + *) {
+					display: none;
+				}
+			}	
+			
+			&:empty:has( + *) {
+				display: none;
+			}
+			
+			&:nth-child(1) {
+				float: left;
+			}
+			
+			&:nth-child(2) {
+				float: right;
+			}
+			
+		}
+		
+		> *:nth-child(3) {
+			clear: left;
+		}
+		
+	}
+	
+	.encounter {
+		background: rgb(145,1,0,0.1);
+		border-left: 10px solid var(--color-pf-primary-lighter);  
+		
+		h3 {
+			
+			&:before {
+				content: "Subtier ";	
+			}
+			
+			+ p {
+				float: right;
+				position: relative;
+				top: -2.3rem;
+				font-size: 1.25rem;
+				font-variant: small-caps;
+			}
+			
+		}
+		
+		hr {
+			border-top: 1px solid var(--primary);
+			border-bottom: none;
+		}
+		
+	}
+	
+	.rewards {
+		background: rgb(214,180,79,0.1);
+		border-left: 10px solid var(--color-pf-tertiary-darker);  
+		padding-bottom: 2rem;
+		
+		&:not(:has( p:last-child > a ) ) {
+			padding-bottom: 5px;	
+		}
+		
+		
+		> p:nth-last-child(2) {
+
+			&:has( > a) {
+				float: left;	
+
+				&:not(:has( strong )):before {
+					font-weight: bold;
+					content: "Low Tier: "						
+				}
+			}
+		}
+		
+		> p:last-child {
+	
+			&:has( > a) {
+				float: right;	
+				margin-right: 5rem;
+
+				&:not(:has( strong )):before {
+					font-weight: bold;
+					content: "High Tier: "						
+				}
+			}
+		}
+					
+		
+		> p:nth-child(3+n):not(:nth-last-child(-n+2)) {
+			float: none;
+			margin: 0;
+		}
+
+		
+		+ * {
+			clear: both;
+		}
+		
+	}
+	
+	.skill-check {
+		background: rgb(84,22,110,0.1);
+		border-left: 10px solid var(--color-rarity-unique);  		
+	
+		> p {
+			padding-left: 2em; 
+			text-indent: -2em;	
+			
+			a:is(.inline-check, .content-link) {
+				padding-left: 1; 
+				text-indent: 0;
+			}
+			
+			&:nth-child(4) {
+				float:left;
+
+				&:before {
+					font-weight: bold;
+					content: "Low Tier: ";
+				}
+				
+			}
+			
+			&:nth-child(5) {
+				float:right;
+				margin-right: 5rem;
+
+				&:before {
+					font-weight: bold;
+					content: "High Tier: ";
+				}
+				
+			}
+			
+			&:nth-child(6):not(:empty):before {
+				color: green;
+				font-weight: bold;
+				content: "Critical Success: ";
+			}
+			
+			&:nth-child(7):not(:empty):before {
+				color: blue;
+				font-weight: bold;
+				content: "Success: ";
+			}
+			
+			&:nth-child(8):not(:empty):before {
+				color: darkgoldenrod;
+				font-weight: bold;
+				content: "Failure: ";
+			}
+			
+			&:nth-child(9):not(:empty):before {
+				color: red;
+				font-weight: bold;
+				content: "Critical Failure: ";
+			}
+			
+		}
+		
+		> *:nth-child(n+3):nth-child(-n+4) {
+			padding-left: 0;
+			text-indent: 0;
+		}
+		
+		> *:nth-child(n+6), + * {
+			clear: both;
+		}
+		
+		&:not(:has(:nth-child(6))) {
+			padding-bottom: 2rem;
+		}
+		
+	}
+	
+	.development {
+		background: rgb(23,31,105,0.1);
+		border-left: 10px solid var(--secondary);  		
+	}
+	
+}
+
+.editor-content .v-journal {
+	.section > p {
+		
+		&:has(br:only-child) {
+			display: none;
+		}
+	
+		&:has(br:only-child):not(:has(+ *)):before {
+			color: gray;
+			font-style: italic;
+			font-variant: none;
+		}
+		
+	}
+	
+	.skill-check {
+		> p:nth-child(4), > p:nth-child(5){
+			float: none;
+		}
+
+		&:not(:has(:nth-child(6))) {
+			padding-bottom: 5px;
+		}
+		
+	}
+	
+}
+
+.v-journal .overlap {
+	height: 300px;
+	width: 600px;
+}
+
+.v-journal .overlap .bg {
+	border: none;
+	position: relative;
+	z-index: 1;
+	height: inherit;
+}
+
+.v-journal .overlap .fg {
+	border: none;
+	position: relative;
+	z-index: 2;
+	float: right;
+	transform: translate(0, -70%);
+	right: 5%;
+	height: 125%;
+}
+
+
+.v-journal .letter-script {
+	background-color: rgb(178,170,149,0.4);
+	font-family: Charm;
+	font-size: 1.2rem;
+	padding: 1rem;
+	border: 4px solid #777365;
+	border-left: none;
+	border-right: none;
+}
+
+.v-journal .letter-plain {
+	background-color: rgb(178,170,149,0.4);
+	font-family: Palatino;
+	font-size: 1.2rem;
+	padding: 1rem;
+	border: 4px solid #777365;
+	border-left: none;
+	border-right: none;
+}
+
+.v-journal table.min-table {
+	width: max-content;
+	max-width: 100%;
+}
+
+.v-journal table.min-table :is(td, th) {
+
+}
+
+.v-journal table thead {
+	background: var(--primary);
+}
+
+.v-journal table :is(td, th) {
+	padding: 0.2rem 1rem;
+}
+
+.v-journal img.v-img {
 	border: 0;
 	height: 200px;
 }
 
-*:is(.journal-entry-content, .editor-content) .center-block {
+.v-journal .center-block {
 	display: block;
 	margin-left: auto;
 	margin-right: auto;
 	width: 50%;
 }
 
-*:is(.journal-entry-content, .editor-content) aside {
+.v-journal aside {
   width: 40%;
   padding-left: 0.5rem;
   margin-left: 0.5rem;
@@ -20,11 +341,11 @@
   color: #29627e;
 }
 
-*:is(.journal-entry-content, .editor-content)  aside > p {
+.v-journal aside > p {
   margin: 0.5rem;
 }
 
-*:is(.journal-entry-content, .editor-content)  aside h3 {
+.v-journal aside h3 {
 	margin-left: 0.5rem;
 	color: #29627e;
 	font-size: 1.25em;
@@ -33,19 +354,30 @@
 	font-weight: bold;
 }
 
-*:is(.journal-entry-content, .editor-content)  h4  {
+.v-journal h4  {
 	font-size: 1.15em;
 	font-variant: small-caps;
 	font-weight: bold;
 }
 
-*:is(.journal-entry-content, .editor-content) .img-grid {
+.v-journal .img-hug {
+	
+}
+
+.v-journal .img-hug img {
+	float: right;
+	border: 0;
+	height: 200px;
+	width: auto;
+}
+
+.v-journal .img-grid {
 	display: grid;
 	grid-template-columns: auto repeat(3, max-content); 
 	vertical-align: middle;
 }
 
-*:is(.journal-entry-content, .editor-content) .img-grid img {
+.v-journal .img-grid img {
 	border: 0;
 	height: 200px;
 	margin: 0;
@@ -55,83 +387,100 @@
 	transform: translate(-50%, -50%);
 }
 
-*:is(.journal-entry-content, .editor-content) .img-grid .img-slice {
+.v-journal .img-grid .img-slice {
 	margin:auto;
 	overflow:hidden;
 	width: 120px;
 }
 
-*:is(.journal-entry-content, .editor-content) .img-grid .img-slice img {
+.v-journal .img-grid .img-slice img {
 	object-fit: cover; 
 	object-position: 50% 0;
 }
 
-*:is(.journal-entry-content, .editor-content) .mini-check {
+.v-journal .mini-check {
 	margin: auto;
 	overflow: hidden;
 	width: 40px;
 }
 
-*:is(.journal-entry-content, .editor-content) .mini-check .icon {
+.v-journal .mini-check .icon {
 	display: none;
 }
 
-*:is(.journal-entry-content, .editor-content) .mini-check .label {
+.v-journal .mini-check .label {
 	display: none;
 }
 
-*:is(.journal-entry-content, .editor-content) .hang p {
+.v-journal .hang p {
     padding-left: 2em; 
 	text-indent: -2em;
 }
 
-*:is(.journal-entry-content, .editor-content) .hang .no-hang p {
+.v-journal *:is(.no-hang, .unhang) p {
 	text-indent: 0;
 }
 
-*:is(.journal-entry-content, .editor-content) .hang .no-hang div {
+.v-journal .no-hang div {
 	margin-left: 2em;
 }
 
-*:is(.journal-entry-content, .editor-content) .hang a {
+.v-journal .hang a {
     padding-left: 1; 
 	text-indent: 0;
 }
 
-*:is(.journal-entry-content, .editor-content) .check-grid {
+.v-journal .check-grid {
 	display: grid;
 	grid-template-columns: repeat(3, max-content);
-	grid-auto-columns: max-content;
-	grid-template-rows: auto
+	grid-auto-columns: repeat(3, max-content);
+	grid-auto-rows: max-content;
+	grid-auto-flow: row;
 	grid-template-areas:
 		". header header"
 		"names checks checks";
 	column-gap: 10px;
 }
 
-*:is(.journal-entry-content, .editor-content) .check-grid .header {
+.v-journal .check-grid .header {
 	font-weight: bold;
 }
 
-*:is(.journal-entry-content, .editor-content) .check-grid .name {
+.v-journal .check-grid .name {
 	font-style: italic;
 }
 
-*:is(.journal-entry-content, .editor-content) .check-grid .names {
+.v-journal .check-grid .names {
 	font-style: italic;
 	line-height: 1.1;
 }
 
-*:is(.journal-entry-content, .editor-content) .check-grid .names p {
-	margin-bottom: 7px;
+.v-journal .check-grid .names-multi {
+	font-style: italic;
+	line-height: 1.6;
 }
 
-.journal-entry-content .check-grid .check-block {
-	margin-top: -20px;
+.v-journal .check-grid .names p {
+	margin-bottom: 6px;
 }
 
-.editor-content .check-grid .check-block {
+.editor-content .v-journal .check-grid .check-block {
 	margin: auto;
 	overflow: clip;
-	width: 100px;
+	width: 250px;
 }
+
+.journal-entry-content .v-journal div[data-pf2-checkgroup] {
+	margin-top: -1rem;
+	margin-bottom: -1rem;
+}
+
+.journal-entry-content:has(.v-journal) {
+	font-family: Lato, Signika, sans-serif;
+}
+
+/*
+.journal-entry-content .v-journal .check-grid .check-block {
+	margin-top: -20px;
+}
+*/
