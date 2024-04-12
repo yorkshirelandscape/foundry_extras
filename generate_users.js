@@ -117,19 +117,23 @@ async function createUser(username) {
         name: username,
         type: "character",
         folder: folder.id
-        });
-        let pw = '';
-        if (use_pw) {
-            pw = await generatePassword( username );
-        };
-        let user = await User.create({name: username, role: 1, password: pw, character: actor, color: getRandomColor( 0.7, 0.99 )})
-        let id = user.id
-        let owner_obj = actor.ownership
-        owner_obj[id] = 3
-        actor.update({
-            ownership: owner_obj
         })
-        return [user, pw];
+    let pw = await generatePassword( username );
+    const userCheck = game.users.find((u) => u.name === username );
+    let user;
+    if (!userCheck) { 
+        user = await User.create({name: username, role: 1, password: pw, character: actor, color: getRandomColor( 0.7, 0.99 )})
+    } else {
+        user = userCheck;
+    }
+
+    let id = user.id
+    let owner_obj = actor.ownership
+    owner_obj[id] = 3
+    await actor.update({
+        ownership: owner_obj
+    })
+    return [user, pw];
 }
 
 async function generatePassword( username ) {
@@ -153,28 +157,26 @@ async function pushMacros( user, gmMacros ) {
     for (let i = 0; i < 10; i++) {
         let macroDoc = gmMacros[i].macro;
         let slot = userMacros.find((s) => s.macro == null );
-        if (slot) {
+        if (slot && macroDoc) {
             await user.assignHotbarMacro( macroDoc, slot );
         }
     }
 }
 
-if (use_pm) {
-    const gm = game.user;
-    const gmMacros = gm.getHotbarMacros(5);
+const gm = game.user;
+const gmMacros = gm.getHotbarMacros(5);
 
-    for (const macroDoc of gmMacros) {
-        if (macroDoc.macro !== null) {
-            macroDoc.macro.update( { 'ownership.default': 2 } );
-        }
+for (const macroDoc of gmMacros) {
+    if (macroDoc.macro) {
+        macroDoc.macro.update( { 'ownership.default': 2 } );
     }
 }
 
 let record = '';
 
 for (const userName of userNames) {
-    let [newUser, pw] = await createUser(userName);
-    if (use_pm) await pushMacros( newUser, gmMacros );
+    [userAcct, pw] = await createUser(userName);
+    await pushMacros( userAcct, gmMacros );
     record += `<tr><td style="user-select:text">${userName}</td><td style="user-select:text">${pw}</td></tr>`;
 }
 
