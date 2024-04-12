@@ -118,10 +118,7 @@ async function createUser(username) {
         type: "character",
         folder: folder.id
         })
-    let pw = '';
-    if (use_pw) {
-        pw = await generatePassword( username );
-    };
+    let pw = await generatePassword( username );
     const userCheck = game.users.find((u) => u.name === username );
     let user;
     if (!userCheck) { 
