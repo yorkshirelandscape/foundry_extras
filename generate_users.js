@@ -97,8 +97,6 @@ function getRandomColor( s, v ) {
     return hsvToHex( h, s, v );
 }
 
-
-
 let userNames = input.split(",");
 
 async function createOrFindFolder(){
@@ -117,15 +115,18 @@ async function createUser(username) {
         name: username,
         type: "character",
         folder: folder.id
-        })
-    let pw = await generatePassword( username );
+    });
+    let pw = '';
+    if (use_pw) {
+        pw = await generatePassword( username );
+    }
     const userCheck = game.users.find((u) => u.name === username );
     let user;
     if (!userCheck) { 
         user = await User.create({name: username, role: 1, password: pw, character: actor, color: getRandomColor( 0.7, 0.99 )})
     } else {
         user = userCheck;
-    }
+    }    
 
     let id = user.id
     let owner_obj = actor.ownership
@@ -157,7 +158,7 @@ async function pushMacros( user, gmMacros ) {
     for (let i = 0; i < 10; i++) {
         let macroDoc = gmMacros[i].macro;
         let slot = userMacros.find((s) => s.macro == null );
-        if (slot && macroDoc) {
+        if (slot && macroDoc ) {
             await user.assignHotbarMacro( macroDoc, slot );
         }
     }
