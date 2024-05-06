@@ -118,6 +118,11 @@
 			}
 			
 		}
+		
+		&.stat-block {
+			background: rgb(0, 102, 68, 0.1);	
+			border-left: 10px solid var(--color-text-dark-improved);
+		}
 
 		&.encounter {
 			background: rgb(145, 1, 0, 0.1);
@@ -382,6 +387,10 @@
 			border-bottom: 1px solid #29627e;
 			font-weight: bold;
 		}
+		
+		+ .section {
+			width: 60%;	
+		}
 
 	}
 
@@ -393,7 +402,21 @@
 			height: 200px;
 			width: auto;
 		}
-
+		
+	}
+	
+	img.img-hug.right {
+		float: right;
+		border: 0;
+		height: 200px;
+		width: auto;	
+	}
+		
+	img.img-hug.left {
+		float: left;
+		border: 0;
+		height: 200px;
+		width: auto;	
 	}
 
 	.check-grid {
@@ -414,8 +437,12 @@
 		.name, .names {
 			font-style: italic;
 			
-			&.multi {
-				line-height: 1.6;
+			> p {
+				line-height: 2;
+				
+				&:has(br) {
+					line-height: 1.8;
+				}
 			}
 		}
 
