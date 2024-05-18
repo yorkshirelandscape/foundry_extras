@@ -6,7 +6,7 @@
 Requires the following:
     - Any number of users, each with a selected character assigned in User Configuration.
     - Each of these characters must have an assigned avatar (character art).
-    - On your landing page, one token per user with the name 'portrait x' where x is a
+    - On your landing page, one token per user with the name 'portrait (x)' where x is a
       number from 1 to the number of users you have. You can import 'fvtt-Actor-portrait.json'.
     - The script supports any size and proportion (in grid squares) of token, as well as rotation.
     - Somewhere suitable near the tokens, one text drawing per user with the text 'Player x' where
