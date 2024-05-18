@@ -1,12 +1,13 @@
+/* eslint no-param-reassign: ["error", { "props": false }] */
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-undef */
 /*
 Requires the following:
     - Any number of users, each with a selected character assigned in User Configuration.
     - Each of these characters must have an assigned avatar (character art).
-    - The script assumes the character art is taller than it is wide, or square.
     - On your landing page, one token per user with the name 'portrait x' where x is a
-      number from 1 to the number of users you have.
+      number from 1 to the number of users you have. You can import 'fvtt-Actor-portrait.json'.
     - The script supports any size and proportion (in grid squares) of token, as well as rotation.
     - Somewhere suitable near the tokens, one text drawing per user with the text 'Player x' where
       x is the number mentioned above.
@@ -17,37 +18,52 @@ Hooks.on('canvasReady', async (canvas) => {
   let party = game.actors.party.members.filter((c) => c.type === 'character' && !['Animal Companion', 'Eidolon', 'Construct Companion'].includes(c.class?.name));
   party = party.length === 0 ? null : party;
   const users = party || game.users.filter((u) => !u.isGM && u.name !== 'yorkshirelandscape' && u.character !== null).map((u) => u.character);
-  let maxPNum = Math.max(...users.map((u) => u.getFlag('world', 'userManager.playerNum')));
+  let maxPNum = 0; // Math.max(...users.map((u) => u.getFlag('world', 'userManager.playerNum')));
+  // console.log(maxPNum);
 
-  users.filter((u) => !u.getFlag('world', 'userManager')).forEach(async (u) => {
-    await u.setFlag('world', 'userManager', { playerNum: maxPNum += 1 });
+  users.sort((a, b) => {
+    if (a.folder.name < b.folder.name) {
+      return -1;
+    }
+    if (a.folder.name > b.folder.name) {
+      return 1;
+    }
+    return 0;
   });
 
-  users.filter((u) => !u.getFlag('world', 'userManager.playerNum')).forEach(async (u) => {
-    await u.setFlag('world', 'userManager.playerNum', maxPNum += 1);
-  });
+  let f = users[0].folder.name;
 
-  users.sort((a, b) => a.getFlag('world', 'userManager.playerNum') - b.getFlag('world', 'userManager.playerNum'));
+  async function setNum(u) {
+    maxPNum += (u.folder.name === f ? 1 : (6 - (maxPNum % 6) + 1));
+    await u.setFlag('world', 'userManager.playerNum', maxPNum);
+  }
 
-  let portraitTokens = canvas.tokens.placeables.filter((t) => t.name.substring(0, 8).toLowerCase() === 'portrait');
+  async function setNums(usrs) {
+    for (u of usrs) {
+      // eslint-disable-next-line no-await-in-loop
+      await setNum(u);
+      f = u.folder.name;
+    }
+  }
 
-  portraitTokens = portraitTokens.sort((a, b) => a.name.match(/[0-9]+(?=\)$)/)[0] - b.name.match(/[0-9]+(?=\)$)/)[0]);
+  await setNums(users);
+
+  const portraitTokens = canvas.tokens.placeables.filter((t) => t.name.substring(0, 8).toLowerCase() === 'portrait');
 
   const pTMatch = portraitTokens;
 
   let cnum = 1;
-  portraitTokens.forEach((t) => {
-    const token = t;
-    const playerNo = token.name.match(/[0-9]+(?=\)$)/)[0];
-    token.id2 = `token${playerNo}`;
-    const matches = pTMatch.filter((to) => to.name === token.name).length;
+  for (t of portraitTokens) {
+    const playerNo = t.name.match(/[0-9]+(?=\)$)/)[0];
+    t.id2 = `token${playerNo}`;
+    const matches = pTMatch.filter((to) => to.name === t.name).length;
     if (matches > 1) {
-      token.id2 = `token${playerNo}.${cnum}`;
+      t.id2 = `token${playerNo}.${cnum}`;
       cnum += 1;
     } else {
       cnum = 1;
     }
-  });
+  }
 
   const playerLabels = game.canvas.drawings.objects.children
     .filter((d) => d.text?.text.substring(0, 6).toLowerCase() === 'player')
@@ -61,20 +77,22 @@ Hooks.on('canvasReady', async (canvas) => {
 
   if (!portraitTokens) return;
 
-  let characters = [];
+  async function getOwner() {
+    const chars = [];
+    users.forEach(async (u) => {
+      u.owner = { id: u.id, name: u.name, playerNum: await u.getFlag('world', 'userManager.playerNum') };
+      chars.push(u);
+    });
+    return chars;
+  }
 
-  users.forEach((u) => {
-    const user = u;
-    user.owner = { id: u.id, name: u.name, playerNum: u.playerNum };
-    characters.push(u);
-  });
+  const characters = await getOwner();
 
-  characters = characters.sort((a, b) => a.owner.playerNum - b.owner.playerNum);
-
-  characters.forEach(async (c, i) => {
-    const playerLabel = playerLabels.find((l) => l.id2 === `player-label${i + 1}`);
+  async function cPrep(c) {
+    const playerLabel = playerLabels.find((l) => l.id2 === `player-label${c.owner.playerNum}`);
+    if (!playerLabel) return;
     [playerLabel.text.text] = c.prototypeToken.name.match(/[^\s]+/);
-    const portraitToken = portraitTokens.find((t) => t.id2 === `token${i + 1}`);
+    const portraitToken = portraitTokens.find((t) => t.id2 === `token${c.owner.playerNum}`);
     let markerTexture;
     if (c.img === 'systems/pf2e/icons/default-icons/character.svg') {
       markerTexture = await loadTexture('modules/pfs2/assets/pfs-tan.svg');
@@ -117,9 +135,18 @@ Hooks.on('canvasReady', async (canvas) => {
       canvas.grid.size * portraitToken.document.width * 0.5,
       canvas.grid.size * portraitToken.document.height * 0.5,
     );
-    markerToken.id = `player-portrait${i + 1}`;
+    markerToken.id = `player-portrait${c.owner.playerNum}`;
     markerToken.alpha = 1;
-  });
+  }
+
+  async function cloop(chars) {
+    chars.forEach(async (c) => {
+      await cPrep(c);
+    });
+  }
+
+  cloop(characters);
+
   await new Promise((r) => { setTimeout(r, 1000); });
   users.forEach((u) => {
     const chars = game.actors.filter((a) => a.getUserLevel(u) === 3 && a.name !== 'Party Loot');
