@@ -27,7 +27,6 @@ Hooks.on('canvasReady', async (canvas) => {
       }
       return 0;
     });
-  console.log(folders);
 
   let maxPNum = 0;
   async function setNum(u, fi, ai) {
@@ -43,7 +42,8 @@ Hooks.on('canvasReady', async (canvas) => {
         users.push(a);
       }
     } else {
-      for (const [ai, a] of f.contents.entries()) {
+      const chars = f.contents.filter((c) => c.type === 'character' && !['Animal Companion', 'Eidolon', 'Construct Companion'].includes(c.class?.name));
+      for (const [ai, a] of chars.entries()) {
         await setNum(a, fi, ai);
         users.push(a);
       }
