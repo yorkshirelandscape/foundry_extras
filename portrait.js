@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /* eslint no-param-reassign: ["error", { "props": false }] */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-underscore-dangle */
@@ -15,38 +16,39 @@ Requires the following:
 
 Hooks.on('canvasReady', async (canvas) => {
   const size = 1;
-  let party = game.actors.party.members.filter((c) => c.type === 'character' && !['Animal Companion', 'Eidolon', 'Construct Companion'].includes(c.class?.name));
-  party = party.length === 0 ? null : party;
-  const users = party || game.users.filter((u) => !u.isGM && u.name !== 'yorkshirelandscape' && u.character !== null).map((u) => u.character);
-  let maxPNum = 0; // Math.max(...users.map((u) => u.getFlag('world', 'userManager.playerNum')));
-  // console.log(maxPNum);
+  const party = game.actors.party.members.filter((c) => c.type === 'character' && !['Animal Companion', 'Eidolon', 'Construct Companion'].includes(c.class?.name));
+  const folders = game.folders.filter((f) => f.type === 'Actor' && f.name.match('^[0-9]{4}..*'))
+    .sort((a, b) => {
+      if (a.name < b.name) {
+        return -1;
+      }
+      if (a.name > b.name) {
+        return 1;
+      }
+      return 0;
+    });
+  console.log(folders);
 
-  users.sort((a, b) => {
-    if (a.folder.name < b.folder.name) {
-      return -1;
-    }
-    if (a.folder.name > b.folder.name) {
-      return 1;
-    }
-    return 0;
-  });
-
-  let f = users[0].folder.name;
-
-  async function setNum(u) {
-    maxPNum += (u.folder.name === f ? 1 : (6 - (maxPNum % 6) + 1));
+  let maxPNum = 0;
+  async function setNum(u, fi, ai) {
+    maxPNum = fi * 6 + ai + 1;
     await u.setFlag('world', 'userManager.playerNum', maxPNum);
   }
 
-  async function setNums(usrs) {
-    for (u of usrs) {
-      // eslint-disable-next-line no-await-in-loop
-      await setNum(u);
-      f = u.folder.name;
+  const users = [];
+  for (const [fi, f] of folders.entries()) {
+    if (f.contents.length === 0) {
+      for (const [ai, a] of party.entries()) {
+        await setNum(a, fi, ai);
+        users.push(a);
+      }
+    } else {
+      for (const [ai, a] of f.contents.entries()) {
+        await setNum(a, fi, ai);
+        users.push(a);
+      }
     }
   }
-
-  await setNums(users);
 
   const portraitTokens = canvas.tokens.placeables.filter((t) => t.name.substring(0, 8).toLowerCase() === 'portrait');
 
@@ -103,6 +105,7 @@ Hooks.on('canvasReady', async (canvas) => {
       await portraitToken.mesh.document.update({ alpha: 0 });
       portraitToken.refresh();
     }
+    if (!markerTexture.baseTexture) return;
     const textureAR = markerTexture.baseTexture.width / markerTexture.baseTexture.height;
     const textureARinv = markerTexture.baseTexture.height / markerTexture.baseTexture.width;
     const tokenAR = portraitToken.document.width / portraitToken.document.height;
