@@ -17,40 +17,47 @@ Requires the following:
 Hooks.on('canvasReady', async (canvas) => {
   const size = 1;
   const party = game.actors.party.members.filter((c) => c.type === 'character' && !['Animal Companion', 'Eidolon', 'Construct Companion'].includes(c.class?.name));
-  const folders = game.folders.filter((f) => f.type === 'Actor' && f.name.match('^[0-9]{4}..*'))
-    .sort((a, b) => {
-      if (a.name < b.name) {
-        return -1;
-      }
-      if (a.name > b.name) {
-        return 1;
-      }
-      return 0;
-    });
-
   let maxPNum = 0;
+
   async function setNum(u, fi, ai) {
     maxPNum = fi * 6 + ai + 1;
     await u.setFlag('world', 'userManager.playerNum', maxPNum);
   }
 
+  const portraitTokens = canvas.tokens.placeables.filter((t) => t.name.substring(0, 8).toLowerCase() === 'portrait');
   const users = [];
-  for (const [fi, f] of folders.entries()) {
-    if (f.contents.length === 0) {
-      for (const [ai, a] of party.entries()) {
-        await setNum(a, fi, ai);
-        users.push(a);
-      }
-    } else {
-      const chars = f.contents.filter((c) => c.type === 'character' && !['Animal Companion', 'Eidolon', 'Construct Companion'].includes(c.class?.name));
-      for (const [ai, a] of chars.entries()) {
-        await setNum(a, fi, ai);
-        users.push(a);
+  if (portraitTokens.length <= 6) {
+    for (const [ai, a] of party.entries()) {
+      await setNum(a, 0, ai);
+      users.push(a);
+    }
+  } else {
+    const folders = game.folders.filter((f) => f.type === 'Actor' && f.name.match('^[0-9]{4}..*'))
+      .sort((a, b) => {
+        if (a.name < b.name) {
+          return -1;
+        }
+        if (a.name > b.name) {
+          return 1;
+        }
+        return 0;
+      });
+
+    for (const [fi, f] of folders.entries()) {
+      if (f.contents.length === 0) {
+        for (const [ai, a] of party.entries()) {
+          await setNum(a, fi, ai);
+          users.push(a);
+        }
+      } else {
+        const chars = f.contents.filter((c) => c.type === 'character' && !['Animal Companion', 'Eidolon', 'Construct Companion'].includes(c.class?.name));
+        for (const [ai, a] of chars.entries()) {
+          await setNum(a, fi, ai);
+          users.push(a);
+        }
       }
     }
   }
-
-  const portraitTokens = canvas.tokens.placeables.filter((t) => t.name.substring(0, 8).toLowerCase() === 'portrait');
 
   const pTMatch = portraitTokens;
 
