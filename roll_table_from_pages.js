@@ -1,5 +1,8 @@
 const jname = prompt('Name of Journal Entry to convert:', '' );
 const journal = game.journal.find((j) => j.name === jname );
+
+if (!journal) return ui.notifications.warn("Could not find Journal");
+
 const pages = Array.from(journal.collections.pages)
     .map((p) => `@UUID[${p.uuid}]{${p.name}}` );
 
