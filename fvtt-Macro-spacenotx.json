@@ -1,0 +1,25 @@
+{
+  "folder": "KbzVEWtCvPZQ2xCn",
+  "name": "SpaceNotX",
+  "type": "script",
+  "author": "2DgpL5RhLoDCJUCU",
+  "img": "https://i.postimg.cc/bv9kYYKx/Space-Not-X.webp",
+  "scope": "global",
+  "command": "await game.keybindings.set(\"pf2e\", \"placeWaypoint\", [\n    {\n      key: \"Space\",\n      modifiers: []\n    }\n]);",
+  "flags": {
+    "exportSource": {
+      "world": "gatewalkers",
+      "system": "pf2e",
+      "coreVersion": "12.331",
+      "systemVersion": "6.9.0"
+    }
+  },
+  "_stats": {
+    "coreVersion": "12.331",
+    "systemId": "pf2e",
+    "systemVersion": "6.9.0",
+    "createdTime": 1740235676708,
+    "modifiedTime": 1740242373193,
+    "lastModifiedBy": "2DgpL5RhLoDCJUCU"
+  }
+}
