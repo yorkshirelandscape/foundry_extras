@@ -1,6 +1,9 @@
 /*
 Derived from code by meneltamar and Martin Leitner-Ankerl (https://martin.ankerl.com/2009/12/09/how-to-create-random-colors-programmatically/).
 
+While not required, this script works hand-in-hand with this spreadsheet:
+https://docs.google.com/spreadsheets/d/1qwvKyS6U5TEpdt3Q8BdiIfrGx2HCRFMGAj90UYpi9H8/
+
 Setup Instructions:
   - If you wish to use the password generator, set use_pw to true.
   - In the characters object below, replace every instance of WORD with
