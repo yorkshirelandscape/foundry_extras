@@ -1,3 +1,11 @@
+/**
+This macro will...
+ - delete all party users and their actors/characters
+ - clear the party stash
+ - delete all newly orphaned macros not in folders
+**/
+
+
 const party = game.actors.party.members.filter((c) => c.type === 'character' && !['Animal Companion', 'Eidolon', 'Construct Companion'].includes(c.class?.name));
 const otherActors = game.actors.filter((a) => !game.actors.party.members.includes( a ) );
 const gm = game.user.isGM ? game.user.id : 'foo';
